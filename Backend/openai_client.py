@@ -324,3 +324,119 @@ def get_response(history, new_message, search_mode="auto", effort="standard",
             status_code=502, detail=f"OpenAI request failed. Please try again."
         )
 
+
+def stream_response(history, new_message, search_mode="auto", effort="standard",
+                    image_data=None, doc_text=None, doc_name=None):
+    """Generator that yields dicts: {type:'chunk',text}, {type:'done',sources,searched}, or {type:'error',detail}."""
+    api_key = os.getenv("OPENAI_API_KEY")
+    if not api_key:
+        yield {"type": "error", "detail": "OpenAI API key is not configured."}
+        return
+
+    model = os.getenv("OPENAI_MODEL", "gpt-4o")
+    client = OpenAI(api_key=api_key)
+
+    messages = []
+    for msg in history:
+        img = msg.get("image_data")
+        d_text = msg.get("doc_text")
+        d_name = msg.get("doc_name")
+        content = msg["content"]
+        if d_text:
+            label = d_name or "document"
+            content = f"[Attached document: {label}]\n\n{d_text}\n\n---\n\nUser: {content}"
+        if img:
+            messages.append({
+                "role": msg["role"],
+                "content": [
+                    {"type": "input_image", "image_url": img},
+                    {"type": "input_text", "text": content},
+                ],
+            })
+        else:
+            messages.append({"role": msg["role"], "content": content})
+
+    user_content = new_message
+    nth = _detect_word_position_query(new_message)
+    if nth is not None:
+        word, speaker = _nth_word_answer(list(history), nth)
+        if word:
+            user_content = (
+                new_message
+                + f"\n\n[VERIFIED ANSWER: Word {nth} = '{word}' spoken by {speaker}. State this directly.]"
+            )
+
+    if doc_text:
+        label = doc_name or "document"
+        user_content = f"[Attached document: {label}]\n\n{doc_text}\n\n---\n\nUser: {user_content}"
+
+    if image_data:
+        messages.append({
+            "role": "user",
+            "content": [
+                {"type": "input_image", "image_url": image_data},
+                {"type": "input_text", "text": user_content},
+            ],
+        })
+    else:
+        messages.append({"role": "user", "content": user_content})
+
+    instructions = _make_instructions(history, new_message)
+    effort_cfg = _EFFORT_SETTINGS.get(effort, _EFFORT_SETTINGS["standard"])
+
+    tools = None
+    max_tool_calls = effort_cfg["max_tool_calls"]
+    search_ctx = effort_cfg["search_context_size"]
+
+    if search_mode == "off":
+        tools = None
+        max_tool_calls = None
+    elif search_mode == "on":
+        tools = [{"type": "web_search", "search_context_size": "high"}]
+        max_tool_calls = max(max_tool_calls, 5)
+        instructions = (
+            "CRITICAL: The user has explicitly enabled web search. "
+            "You MUST use the web_search tool before answering.\n\n"
+        ) + instructions
+    else:
+        tools = [{"type": "web_search", "search_context_size": search_ctx}]
+
+    create_kwargs = {
+        "model": model,
+        "instructions": instructions,
+        "input": messages,
+        "temperature": effort_cfg["temperature"],
+        "stream": True,
+    }
+    if tools:
+        create_kwargs["tools"] = tools
+    if max_tool_calls is not None:
+        create_kwargs["max_tool_calls"] = max_tool_calls
+
+    try:
+        stream = client.responses.create(**create_kwargs)
+        sources = []
+        searched = False
+
+        for event in stream:
+            if event.type == "response.output_text.delta":
+                yield {"type": "chunk", "text": event.delta}
+            elif event.type == "response.completed":
+                sources = _extract_sources(event.response)
+                searched = any(
+                    getattr(item, "type", "") == "web_search_call"
+                    for item in event.response.output
+                )
+
+        yield {"type": "done", "sources": sources, "searched": searched}
+
+    except AuthenticationError:
+        yield {"type": "error", "detail": "OpenAI API key is invalid."}
+    except RateLimitError:
+        yield {"type": "error", "detail": "OpenAI rate limit reached. Please try again later."}
+    except APIConnectionError:
+        yield {"type": "error", "detail": "Could not connect to OpenAI. Please try again."}
+    except OpenAIError:
+        yield {"type": "error", "detail": "OpenAI request failed. Please try again."}
+
+

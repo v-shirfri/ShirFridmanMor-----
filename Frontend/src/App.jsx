@@ -6,7 +6,7 @@ import HomePage from './pages/HomePage'
 import AboutPage from './pages/AboutPage'
 import {
   createConversation,
-  sendMessage,
+  sendMessageStream,
   listConversations,
   getConversationMessages,
 } from './api'
@@ -79,30 +79,55 @@ function AppContent() {
         activeId = data.conversation_id
         setConversationId(activeId)
       } catch {
-        setError(
-          'Could not connect to the server. Make sure the backend is running with: uvicorn main:app --reload'
-        )
+        setError('Could not connect to the server. Make sure the backend is running.')
         return
       } finally {
         isCreatingConvRef.current = false
       }
     }
 
-    setMessages((prev) => [
-      ...prev,
-      { role: 'user', content: message, image },
-    ])
+    setMessages((prev) => [...prev, { role: 'user', content: message, image }])
     setLoading(true)
 
+    let firstChunk = true
+
     try {
-      const data = await sendMessage(activeId, message, effort, image)
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: data.response, sources: data.sources || [] },
-      ])
-      refreshSidebar()
+      await sendMessageStream(
+        activeId, message, effort, image,
+        // onChunk — first chunk: add assistant message; subsequent: append to it
+        (chunk) => {
+          if (firstChunk) {
+            firstChunk = false
+            setLoading(false)
+            setMessages((prev) => [...prev, { role: 'assistant', content: chunk, sources: [] }])
+          } else {
+            setMessages((prev) => {
+              const updated = [...prev]
+              const last = updated[updated.length - 1]
+              updated[updated.length - 1] = { ...last, content: last.content + chunk }
+              return updated
+            })
+          }
+        },
+        // onDone — attach sources and refresh sidebar
+        (data) => {
+          setMessages((prev) => {
+            const updated = [...prev]
+            const last = updated[updated.length - 1]
+            updated[updated.length - 1] = { ...last, sources: data.sources || [] }
+            return updated
+          })
+          refreshSidebar()
+        },
+        // onError — surface error and remove the partial assistant message
+        (err) => {
+          setError(err.message || 'Something went wrong. Please try again.')
+          setMessages((prev) => (prev[prev.length - 1]?.role === 'assistant' ? prev.slice(0, -1) : prev))
+        }
+      )
     } catch (err) {
       setError(err.message || 'Something went wrong. Please try again.')
+      setMessages((prev) => (prev[prev.length - 1]?.role === 'assistant' ? prev.slice(0, -1) : prev))
     } finally {
       setLoading(false)
     }
