@@ -1,12 +1,16 @@
 from contextlib import asynccontextmanager
 from typing import Optional
 import logging
+import os
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+from dotenv import load_dotenv
 import database
 import openai_client
+
+load_dotenv()
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -18,11 +22,17 @@ async def lifespan(app: FastAPI):
     yield
 
 
+_raw_origins = os.getenv(
+    "ALLOW_ORIGINS",
+    "http://localhost:5173,http://127.0.0.1:5173,http://localhost:5175,http://127.0.0.1:5175,http://localhost:5174,http://127.0.0.1:5174",
+)
+ALLOW_ORIGINS = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5175", "http://127.0.0.1:5175", "http://localhost:5174", "http://127.0.0.1:5174"],
+    allow_origins=ALLOW_ORIGINS,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
@@ -95,4 +105,10 @@ def send_message(conversation_id: int, request: MessageRequest):
                 database.update_conversation_title(conversation_id, new_title)
 
     return {"response": text, "sources": sources, "searched": searched, "title": new_title}
+
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8001))
+    uvicorn.run("main:app", host="0.0.0.0", port=port, reload=True)
 
