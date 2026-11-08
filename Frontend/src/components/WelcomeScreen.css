@@ -1,0 +1,22 @@
+.welcome-screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 16px 0;
+}
+
+.welcome-heading {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: center;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 500px) {
+  .welcome-heading {
+    font-size: 1.5rem;
+  }
+}

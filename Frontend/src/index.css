@@ -1,0 +1,108 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/* ── Classic theme (default) ──────────────────────────── */
+:root {
+  --bg-main:              #ffffff;
+  --bg-sidebar:           #f9f9f9;
+  --bg-sidebar-hover:     #ececec;
+  --bg-sidebar-active:    #e8e8e8;
+  --bg-input:             #f4f4f4;
+  --bg-msg-user:          #f4f4f4;
+  --bg-header-btn-hover:  #f4f4f4;
+  --bg-suggestion:        #f9f9f9;
+  --bg-inline-code:       #f0f0f0;
+  --bg-source-chip:       #fafafa;
+  --text-primary:         #0d0d0d;
+  --text-secondary:       #676767;
+  --text-muted:           #9b9b9b;
+  --text-placeholder:     #9b9b9b;
+  --text-inline-code:     #c7254e;
+  --border-color:         #e5e5e5;
+  --border-source-chip:   #e8e8e8;
+  --accent:               #10a37f;
+  --accent-hover:         #0d8a6b;
+  --btn-send-active:      #0d0d0d;
+  --btn-send-hover:       #2d2d2d;
+  --btn-send-disabled:    #d7d7d7;
+}
+
+/* ── Pink theme ───────────────────────────────────────── */
+.theme-pink {
+  --bg-main:              #FFF8FC;
+  --bg-sidebar:           #FBE7F2;
+  --bg-sidebar-hover:     #F5D0E8;
+  --bg-sidebar-active:    #F0C6E0;
+  --bg-input:             #FDE8F3;
+  --bg-msg-user:          #F9DDEB;
+  --bg-header-btn-hover:  #F5D0E8;
+  --bg-suggestion:        #FBE7F2;
+  --bg-inline-code:       #FBE7F2;
+  --bg-source-chip:       #FFF8FC;
+  --text-primary:         #3D1A2E;
+  --text-secondary:       #9B5B7A;
+  --text-muted:           #C48FAA;
+  --text-placeholder:     #C48FAA;
+  --text-inline-code:     #C45A90;
+  --border-color:         #F0C6E0;
+  --border-source-chip:   #F0C6E0;
+  --accent:               #DB6FA7;
+  --accent-hover:         #C45A90;
+  --btn-send-active:      #DB6FA7;
+  --btn-send-hover:       #C45A90;
+  --btn-send-disabled:    #E8B4CC;
+}
+
+/* ── Dark theme ───────────────────────────────────────── */
+.theme-dark {
+  --bg-main:              #212121;
+  --bg-sidebar:           #171717;
+  --bg-sidebar-hover:     #2a2a2a;
+  --bg-sidebar-active:    #333333;
+  --bg-input:             #303030;
+  --bg-msg-user:          #303030;
+  --bg-header-btn-hover:  #2a2a2a;
+  --bg-suggestion:        #2a2a2a;
+  --bg-inline-code:       #2a2a2a;
+  --bg-source-chip:       #2a2a2a;
+  --text-primary:         #ececec;
+  --text-secondary:       #afafaf;
+  --text-muted:           #6e6e6e;
+  --text-placeholder:     #6e6e6e;
+  --text-inline-code:     #ff8fab;
+  --border-color:         #3a3a3a;
+  --border-source-chip:   #3a3a3a;
+  --accent:               #10a37f;
+  --accent-hover:         #0d8a6b;
+  --btn-send-active:      #ececec;
+  --btn-send-hover:       #ffffff;
+  --btn-send-disabled:    #4a4a4a;
+}
+
+body {
+  font-family: ui-sans-serif, -apple-system, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+textarea,
+input {
+  font-family: inherit;
+}

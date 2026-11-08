@@ -1,0 +1,104 @@
+{
+  "info": {
+    "name": "ChatAI API",
+    "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "description": "API collection for the ChatAI application.\n\nUsage:\n1. Send 'Health Check' to verify the backend is running.\n2. Send 'Create Conversation' to receive a conversation_id.\n3. Use that conversation_id in 'Send Message'.\n4. Use 'Get Messages' to reload an existing conversation.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "health"]
+        },
+        "description": "Verify that the FastAPI backend is running. Returns {\"status\": \"ok\"}."
+      },
+      "response": []
+    },
+    {
+      "name": "List Conversations",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/conversations",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "conversations"]
+        },
+        "description": "Returns the 50 most recent conversations with their first user message as the title."
+      },
+      "response": []
+    },
+    {
+      "name": "Create Conversation",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/conversations",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "conversations"]
+        },
+        "description": "Creates a new conversation record and returns its unique conversation_id. Use this ID in the Send Message request."
+      },
+      "response": []
+    },
+    {
+      "name": "Get Conversation Messages",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8000/api/conversations/1/messages",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "conversations", "1", "messages"]
+        },
+        "description": "Loads all messages for an existing conversation. Replace '1' with the actual conversation_id."
+      },
+      "response": []
+    },
+    {
+      "name": "Send Message",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"message\": \"Hello! Can you tell me a fun fact?\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8000/api/conversations/1/messages",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["api", "conversations", "1", "messages"]
+        },
+        "description": "Sends a message to an existing conversation. Replace '1' in the URL with the conversation_id returned by 'Create Conversation'. The full conversation history is included automatically for context."
+      },
+      "response": []
+    }
+  ]
+}
