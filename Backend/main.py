@@ -1,4 +1,5 @@
 import json
+import threading
 from contextlib import asynccontextmanager
 from typing import Optional
 import logging
@@ -13,7 +14,7 @@ import openai_client
 
 load_dotenv()
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
@@ -142,16 +143,23 @@ def send_message_stream(conversation_id: int, request: MessageRequest):
                     request.image, None, None
                 )
 
-                new_title = None
+                # Send done immediately — don't block on title generation
+                event["title"] = None
+                yield f"data: {json.dumps(event)}\n\n"
+
+                # Generate title in background so the client isn't kept waiting
                 if len(history) <= 4:
                     existing_title = database.get_conversation_title(conversation_id)
                     if not existing_title:
-                        new_title = openai_client.generate_title(request.message.strip(), complete_text)
-                        if new_title:
-                            database.update_conversation_title(conversation_id, new_title)
-
-                event["title"] = new_title
-                yield f"data: {json.dumps(event)}\n\n"
+                        def _gen_title(msg, resp, conv_id):
+                            title = openai_client.generate_title(msg, resp)
+                            if title:
+                                database.update_conversation_title(conv_id, title)
+                        threading.Thread(
+                            target=_gen_title,
+                            args=(request.message.strip(), complete_text, conversation_id),
+                            daemon=True,
+                        ).start()
 
             elif event["type"] == "error":
                 yield f"data: {json.dumps(event)}\n\n"
