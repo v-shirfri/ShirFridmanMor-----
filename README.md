@@ -168,7 +168,7 @@ docker compose up --build
 |---|---|
 | Frontend | http://localhost |
 | Backend API | http://localhost:8001 |
-| MySQL | localhost:3306 |
+| MySQL | internal only (not exposed to host) |
 
 ### 4 – Stop
 
