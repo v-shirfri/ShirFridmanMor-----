@@ -2,7 +2,6 @@ services:
   db:
     image: mysql:8.4
     restart: unless-stopped
-    env_file: ./Backend/.env
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: ${DB_NAME:-chatproj_db}
@@ -22,9 +21,15 @@ services:
   backend:
     build: ./Backend
     restart: unless-stopped
-    env_file: ./Backend/.env
     environment:
-      DB_HOST: db        # override localhost → docker service name
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4o}
+      DB_HOST: db
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME:-chatproj_db}
+      ALLOW_ORIGINS: ${ALLOW_ORIGINS:-http://localhost}
+      PORT: ${PORT:-8001}
     ports:
       - "8001:8001"
     depends_on:
@@ -44,3 +49,4 @@ services:
 
 volumes:
   db_data:
+

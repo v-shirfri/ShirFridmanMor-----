@@ -125,25 +125,25 @@ Docker Compose starts the database, backend, and frontend together with a single
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
 
-### 1 – Prepare environment files
+### 1 – Prepare environment file
 
-The compose file reads credentials from `Backend/.env`.  
-Copy and fill it in if you haven't already:
+Docker Compose reads all variables from a single `.env` file at the project root.  
+Copy the example and fill in your values:
 
 ```bash
 # macOS/Linux
-cp Backend/.env.example Backend/.env
+cp .env.example .env
 
 # Windows
-copy Backend\.env.example Backend\.env
+copy .env.example .env
 ```
 
-Then open `Backend/.env` and set at minimum:
+Open `.env` and set at minimum:
 - `OPENAI_API_KEY`
 - `DB_USER`
 - `DB_PASSWORD`
 
-> **Note:** `DB_HOST` is automatically overridden to `db` (the MySQL container name) by the compose file — leave it as `localhost` in the `.env` file for local non-Docker use.
+> **Note:** `DB_HOST` is set automatically to the MySQL container — do not add it to this file.
 
 ### 2 – (Optional) Override the frontend backend URL
 
