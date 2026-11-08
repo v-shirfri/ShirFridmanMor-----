@@ -118,5 +118,67 @@ The app will be available at `http://localhost:5173`.
 
 ---
 
-## Developer
+## Docker Compose (recommended for deployment)
+
+Docker Compose starts the database, backend, and frontend together with a single command.
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (includes Docker Compose)
+
+### 1 – Prepare environment files
+
+The compose file reads credentials from `Backend/.env`.  
+Copy and fill it in if you haven't already:
+
+```bash
+# macOS/Linux
+cp Backend/.env.example Backend/.env
+
+# Windows
+copy Backend\.env.example Backend\.env
+```
+
+Then open `Backend/.env` and set at minimum:
+- `OPENAI_API_KEY`
+- `DB_USER`
+- `DB_PASSWORD`
+
+> **Note:** `DB_HOST` is automatically overridden to `db` (the MySQL container name) by the compose file — leave it as `localhost` in the `.env` file for local non-Docker use.
+
+### 2 – (Optional) Override the frontend backend URL
+
+By default the frontend is built pointing to `http://localhost:8001`.  
+If you are deploying to a remote host, set `VITE_API_BASE_URL` before building:
+
+```bash
+# macOS/Linux
+export VITE_API_BASE_URL=https://your-domain.com:8001
+
+# Windows PowerShell
+$env:VITE_API_BASE_URL="https://your-domain.com:8001"
+```
+
+### 3 – Build and start
+
+```bash
+docker compose up --build
+```
+
+| Service | URL |
+|---|---|
+| Frontend | http://localhost |
+| Backend API | http://localhost:8001 |
+| MySQL | localhost:3306 |
+
+### 4 – Stop
+
+```bash
+docker compose down
+```
+
+To also remove the database volume (⚠️ deletes all data):
+
+```bash
+docker compose down -v
+```
 Shir Fridman Mor
